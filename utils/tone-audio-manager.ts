@@ -11,8 +11,8 @@ class ToneAudioManager {
   // Tone.js instruments and effects
   private synths: Map<string, Tone.Synth | Tone.PolySynth | Tone.MembraneSynth> = new Map()
   private loops: Map<string, Tone.Loop> = new Map()
-  private effects: Map<string, Tone.Effect> = new Map()
-  private patterns: Map<string, Tone.Pattern> = new Map()
+  private effects: Map<string, Tone.Reverb | Tone.FeedbackDelay | Tone.Chorus> = new Map()
+  private patterns: Map<string, Tone.Pattern<string>> = new Map()
   private sequences: Map<string, Tone.Sequence> = new Map()
 
   // Volume controls
@@ -214,12 +214,9 @@ class ToneAudioManager {
 
       // Create a pad sequence that also updates the chord index
       const padSequence = new Tone.Sequence(
-        (time, chord, index) => {
+        (time: any, chord: any) => {
           this.synths.get("pad")?.triggerAttackRelease(chord, "2n", time)
-          // Update the current chord index safely
-          if (typeof index === "number") {
-            this.currentChordIndex = index
-          }
+          
         },
         titleChords,
         "1m",
@@ -449,7 +446,11 @@ class ToneAudioManager {
 
       console.log("All music stopped")
     } catch (error) {
-      console.error("Error stopping music:", error)
+      if (error instanceof Error) {
+        console.error("Error stopping music:", error.message, error.stack)
+      } else {
+        console.error("Error stopping music:", error)
+      }
     }
   }
 
@@ -462,36 +463,68 @@ class ToneAudioManager {
       // Different sounds for different actions
       switch (id) {
         case "click":
-          melodySynth?.triggerAttackRelease("C5", "32n", Tone.now(), 0.5)
+          if (!melodySynth) {
+            console.warn("[Audio] 'melody' synth not initialized. Click sound will not play.")
+          } else {
+            melodySynth.triggerAttackRelease("C5", "32n", Tone.now(), 0.5)
+          }
           break
-        case "success":
-          // Play a happy arpeggio
-          const now = Tone.now()
-          melodySynth?.triggerAttackRelease("C5", "16n", now, 0.5)
-          melodySynth?.triggerAttackRelease("E5", "16n", now + 0.1, 0.5)
-          melodySynth?.triggerAttackRelease("G5", "16n", now + 0.2, 0.5)
-          melodySynth?.triggerAttackRelease("C6", "8n", now + 0.3, 0.5)
+        case "success": {
+          if (!melodySynth) {
+            console.warn("[Audio] 'melody' synth not initialized. Success sound will not play.")
+          } else {
+            // Play a happy arpeggio
+            const now = Tone.now()
+            melodySynth.triggerAttackRelease("C5", "16n", now, 0.5)
+            melodySynth.triggerAttackRelease("E5", "16n", now + 0.1, 0.5)
+            melodySynth.triggerAttackRelease("G5", "16n", now + 0.2, 0.5)
+            melodySynth.triggerAttackRelease("C6", "8n", now + 0.3, 0.5)
+          }
           break
-        case "failure":
-          // Play a sad chord
-          const failTime = Tone.now()
-          melodySynth?.triggerAttackRelease("C4", "8n", failTime, 0.5)
-          melodySynth?.triggerAttackRelease("Eb4", "8n", failTime, 0.5)
-          melodySynth?.triggerAttackRelease("G4", "8n", failTime, 0.5)
+        }
+        case "failure": {
+          if (!melodySynth) {
+            console.warn("[Audio] 'melody' synth not initialized. Failure sound will not play.")
+          } else {
+            // Play a sad chord
+            const failTime = Tone.now()
+            melodySynth.triggerAttackRelease("C4", "8n", failTime, 0.5)
+            melodySynth.triggerAttackRelease("Eb4", "8n", failTime, 0.5)
+            melodySynth.triggerAttackRelease("G4", "8n", failTime, 0.5)
+          }
           break
-        case "timer":
-          this.synths.get("perc")?.triggerAttackRelease("C2", "32n", Tone.now(), 0.3)
+        }
+        case "timer": {
+          const percSynth = this.synths.get("perc")
+          if (!percSynth) {
+            console.warn("[Audio] 'perc' synth not initialized. Timer sound will not play.")
+          } else {
+            percSynth.triggerAttackRelease("C2", "32n", Tone.now(), 0.3)
+          }
           break
+        }
         case "node-select":
-          melodySynth?.triggerAttackRelease("G4", "16n", Tone.now(), 0.5)
+          if (!melodySynth) {
+            console.warn("[Audio] 'melody' synth not initialized. Node-select sound will not play.")
+          } else {
+            melodySynth.triggerAttackRelease("G4", "16n", Tone.now(), 0.5)
+          }
           break
         default:
-          melodySynth?.triggerAttackRelease("C5", "16n", Tone.now(), 0.5)
+          if (!melodySynth) {
+            console.warn("[Audio] 'melody' synth not initialized. Default sound will not play.")
+          } else {
+            melodySynth.triggerAttackRelease("C5", "16n", Tone.now(), 0.5)
+          }
       }
 
       console.log(`Played sound: ${id}`)
     } catch (error) {
-      console.error(`Error playing sound ${id}:`, error)
+      if (error instanceof Error) {
+        console.error(`[Audio] Error playing sound '${id}':`, error.message, error.stack)
+      } else {
+        console.error(`[Audio] Unknown error playing sound '${id}':`, error)
+      }
     }
   }
 
