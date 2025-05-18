@@ -35,16 +35,30 @@ export default function CharacterSelect({ unlockedCharacters, onSelectCharacter 
             onClick={() => handleCharacterClick(character.name)}
           >
             <div
-              className={`bg-gradient-to-br ${character.color} rounded-lg p-6 transform transition-all duration-300 group-hover:scale-105 cursor-pointer shadow-lg`}
+              className={`bg-gradient-to-b ${character.color} rounded-lg p-6 transform transition-all duration-300 group-hover:scale-105 cursor-pointer shadow-lg`}
             >
               <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
 
               <div className="w-24 h-24 mx-auto mb-4 bg-gray-800/50 rounded-full flex items-center justify-center p-2">
-                <img
-                  src={character.image || "/placeholder.svg"}
-                  alt={character.name}
-                  className="w-full h-full object-contain"
-                />
+                {character.name === "Neural Node" ? (
+                  <img
+                    src="/neural-node.svg"
+                    alt="Neural Node Icon"
+                    className="w-full h-full object-contain"
+                  />
+                ) : character.name === "Binary Bot" ? (
+                  <img
+                    src="/binary-bot.svg"
+                    alt="Binary Bot Icon"
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <img
+                    src={character.image || "/placeholder.svg"}
+                    alt={character.name}
+                    className="w-full h-full object-contain"
+                  />
+                )}
               </div>
 
               <h4 className="text-xl font-bold text-white text-center mb-3">{character.name}</h4>

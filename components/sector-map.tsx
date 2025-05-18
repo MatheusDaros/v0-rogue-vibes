@@ -5,14 +5,36 @@ import type React from "react"
 import { useState } from "react"
 import type { GameState } from "@/types/game-types"
 import { getToneAudioManager } from "@/utils/tone-audio-manager"
+import ShopTradeModal from "@/components/shop-trade-modal"
 
 interface SectorMapProps {
   gameState: GameState
   onSelectNode: (nodeIndex: number, nodeType: string) => void
+  onUnlockNode: (nodeIndex: number) => void
 }
 
-export default function SectorMap({ gameState, onSelectNode }: SectorMapProps) {
-  const { character, sector, resources, health } = gameState.currentRun
+import { useEffect } from "react"
+
+export default function SectorMap({ gameState, onSelectNode, onUnlockNode }: SectorMapProps) {
+  // Track which node is currently unlocked (only one at a time)
+  const [unlockedNode, setUnlockedNode] = useState<number>(gameState.currentRun.node || 0)
+
+  // Keep local unlockedNode in sync with prop
+  useEffect(() => {
+    setUnlockedNode(gameState.currentRun.node || 0)
+  }, [gameState.currentRun.node])
+  const [showShopModal, setShowShopModal] = useState(false)
+  const [resources, setResources] = useState(gameState.currentRun.resources)
+
+  // When a node is completed, unlock the next one
+  const unlockNextNode = (nodeIndex: number) => {
+    if (nodeIndex === unlockedNode && unlockedNode < 4) {
+      setUnlockedNode(unlockedNode + 1)
+      onUnlockNode(unlockedNode + 1)
+    }
+  }
+
+  const { character, sector, health } = gameState.currentRun
   const [hoveredNode, setHoveredNode] = useState<number | null>(null)
   const [showTooltip, setShowTooltip] = useState(false)
   const [tooltipContent, setTooltipContent] = useState("")
@@ -59,11 +81,28 @@ export default function SectorMap({ gameState, onSelectNode }: SectorMapProps) {
   }
 
   const handleNodeClick = (index: number, type: string) => {
+    if (index > unlockedNode) return // Prevent clicking locked nodes
     const audioManager = getToneAudioManager()
     if (audioManager) {
       audioManager.playSound("node-select")
     }
+    if (type === "shop") {
+      setShowShopModal(true)
+      return
+    }
     onSelectNode(index, type)
+    unlockNextNode(index)
+  }
+
+  // Handle shop trade
+  const handleShopTrade = (cost: number, tokens: number) => {
+    setResources((prev) => ({
+      ...prev,
+      money: prev.money - cost,
+      tokens: prev.tokens + tokens,
+    }))
+    setShowShopModal(false)
+    unlockNextNode(1) // Shop is always node 1
   }
 
   return (
@@ -174,10 +213,14 @@ export default function SectorMap({ gameState, onSelectNode }: SectorMapProps) {
                     <div className={`absolute inset-0 ${pulseColor} rounded-full opacity-30 animate-ping`}></div>
                   )}
                   <button
-                    className={`w-16 h-16 ${nodeColor} rounded-full hover:shadow-lg hover:shadow-${pulseColor}/50 transition-all duration-300 flex items-center justify-center mb-2 text-xl font-bold text-white transform ${isHovered ? "scale-110" : ""}`}
+                    className={`w-16 h-16 ${nodeColor} rounded-full transition-all duration-300 flex items-center justify-center mb-2 text-xl font-bold text-white transform 
+              ${isHovered && node.index === unlockedNode ? "scale-110" : ""}
+              ${node.index === unlockedNode ? "hover:shadow-lg hover:shadow-" + pulseColor + "/50" : ""}
+              ${node.index !== unlockedNode ? "opacity-30 cursor-not-allowed" : ""}`}
                     onClick={() => handleNodeClick(node.index, node.type)}
                     onMouseEnter={(e) => handleNodeHover(node.index, node.type, e)}
                     onMouseLeave={() => setShowTooltip(false)}
+                    disabled={node.index !== unlockedNode}
                   >
                     {nodeIcon}
                   </button>
@@ -219,6 +262,13 @@ export default function SectorMap({ gameState, onSelectNode }: SectorMapProps) {
           </div>
         </div>
       </div>
+    {/* Shop Trade Modal */}
+    <ShopTradeModal
+      open={showShopModal}
+      onClose={() => setShowShopModal(false)}
+      money={resources.money}
+      onTrade={handleShopTrade}
+    />
     </div>
   )
 }

@@ -243,7 +243,25 @@ export default function Home() {
             />
           )}
 
-          {currentScreen === "sector-map" && <SectorMap gameState={gameState} onSelectNode={selectNode} />}
+          {currentScreen === "sector-map" && (
+  <SectorMap
+    gameState={gameState}
+    onSelectNode={selectNode}
+    onUnlockNode={(nodeIndex) => {
+      // Only update if nodeIndex is greater than current
+      if (nodeIndex > gameState.currentRun.node) {
+        const newState = {
+          ...gameState,
+          currentRun: {
+            ...gameState.currentRun,
+            node: nodeIndex,
+          },
+        }
+        updateGameState(newState)
+      }
+    }}
+  />
+)}
 
           {currentScreen === "combat" && combatProps && (
             <Combat
