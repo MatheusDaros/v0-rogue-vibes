@@ -192,26 +192,26 @@ export default function Combat({ gameState, difficulty, nodeType, onCombatComple
         Time: {timeLeft}s
       </div>
 
-      {showResult ? (
+      {showResult && result ? (
         <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg text-center">
           <h3
             className={`text-3xl font-bold mb-4 ${
-              result?.success ? "text-green-400" : result?.percentage >= 50 ? "text-yellow-400" : "text-red-400"
+              result.success ? "text-green-400" : result.percentage >= 50 ? "text-yellow-400" : "text-red-400"
             }`}
           >
-            {result?.success ? "PERFECT SOLUTION!" : result?.percentage >= 50 ? "PARTIAL SUCCESS" : "COMBAT FAILED"}
+            {result.success ? "PERFECT SOLUTION!" : result.percentage >= 50 ? "PARTIAL SUCCESS" : "COMBAT FAILED"}
           </h3>
 
           <div className="mb-4">
             <div className="inline-block px-4 py-2 rounded-full bg-gray-700/50">
-              {result?.success ? (
+              {result.success ? (
                 <span className="text-green-400">+20 tokens, +$50</span>
-              ) : result?.percentage >= 50 ? (
+              ) : result.percentage >= 50 ? (
                 <span className="text-yellow-400">
                   +{Math.floor(result.percentage / 10)} tokens, +${Math.floor(result.percentage / 2)}
                 </span>
               ) : (
-                <span className="text-red-400">Took {100 - (result?.percentage || 0)}% damage</span>
+                <span className="text-red-400">Took {100 - (result.percentage || 0)}% damage</span>
               )}
             </div>
           </div>
@@ -219,13 +219,13 @@ export default function Combat({ gameState, difficulty, nodeType, onCombatComple
           <div className="w-full bg-gray-700 rounded-full h-4 mb-6">
             <div
               className={`h-4 rounded-full ${
-                result?.success ? "bg-green-500" : result?.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
+                result.success ? "bg-green-500" : result.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"
               }`}
-              style={{ width: `${result?.percentage}%` }}
+              style={{ width: `${result.percentage}%` }}
             ></div>
           </div>
 
-          <p className="text-gray-300 mb-6">Accuracy: {result?.percentage}%</p>
+          <p className="text-gray-300 mb-6">Accuracy: {result.percentage}%</p>
 
           <div className="bg-gray-700/50 p-4 rounded-lg">
             <h4 className="text-white mb-4 font-medium">Correct Solution:</h4>
@@ -298,7 +298,7 @@ export default function Combat({ gameState, difficulty, nodeType, onCombatComple
                           type="number"
                           value={cell === null ? "" : cell}
                           onChange={(e) => handleInputChange(i, j, e.target.value)}
-                          disabled={character.preFilled && i === 0 && j === 0}
+                          disabled={character.preFilled > 0 && i === 0 && j === 0}
                           className={`w-full h-full bg-gray-700 text-white text-center font-mono rounded focus:outline-none focus:ring-2 focus:ring-cyan-500 ${
                             character.preFilled && i === 0 && j === 0 ? "bg-green-900/50" : "hover:bg-gray-600"
                           }`}

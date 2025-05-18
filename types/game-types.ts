@@ -3,7 +3,7 @@ export interface Character {
   matrixSize: number
   numberRange: [number, number]
   timeBonus: number
-  preFilled?: number
+  preFilled: number
   description: string
   image: string
   color: string
