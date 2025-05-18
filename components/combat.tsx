@@ -35,10 +35,18 @@ export default function Combat({ gameState, difficulty, nodeType, onCombatComple
     // Add character time bonus
     setTimeLeft((prev) => prev + character.timeBonus)
 
-    // Pre-fill one cell if character has that ability
+    // Pre-fill cells if character has that ability
     if (character.preFilled) {
-      const newSolution = [...userSolution]
-      newSolution[0][0] = matrices.solution[0][0]
+      const newSolution = [...userSolution.map(row => [...row])]
+      if (character.name === "Binary Bot" && character.preFilled === 3) {
+        // Pre-fill three cells: top-left, top-right, bottom-left
+        newSolution[0][0] = matrices.solution[0][0]
+        newSolution[0][1] = matrices.solution[0][1]
+        newSolution[1][0] = matrices.solution[1][0]
+      } else {
+        // Default: pre-fill one cell
+        newSolution[0][0] = matrices.solution[0][0]
+      }
       setUserSolution(newSolution)
     }
 
